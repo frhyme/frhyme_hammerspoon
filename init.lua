@@ -7,11 +7,11 @@ IMPLEMENTED
 2022.03.20 - sng_hn.lee - karabiner에서는 ctrl + shift hjkl 을 통해 block지정이 되는데, hammerspoon 에서는 안됨.
 2022.03.21 - sng_hn.lee - ctrl + cmd + hjkl
 2022.03.20 - sng_hn.lee - ctrl을 사용한 복합키를 누르면 항상 한영 변환이 한번 더 일어나도록 처리하여, 입력 소스가 변경되지 않도록 처리함.
+2022.03.24 - sng_hn.lee - 키보드로 마우스 움직이고 클릭할 수 있도록 세팅함
 -------------
 NOT IMPLEMENTED YET
 2022.03.19 - sng_hn.lee - karabiner에서는 기본적으로 FN + 4 -> go launchpad 등이 서포트되는데, hammerspoon 에서는 안됨.
 - 이건 시스템 환경 설정 > 키보드 > 단축키 에서 설정할 수 있어서 수정함.
-2022.03.20 - sng_hn.lee - 키보드로 마우스 움직이고 클릭할 수 있도록 세팅하려면?
 2022.03.21 - sng_hn.lee - Caps Lock key 생성 필요함. 다만, 이건 아래에 작성한 이유로 잘 안되느 것 같음.
 -------------
 --]]
@@ -232,7 +232,7 @@ function print_keycode()
 end 
 ------------------------------------------------------------------------------------
 -- 2022.03.23 - sng_hn.lee - mouse 움직이도록 설ㅏ
-function move_mouse ()
+function move_click_mouse ()
   --https://www.hammerspoon.org/docs/hs.mouse.html
 
   local function func_move_mouse_hjkl (key)
@@ -287,6 +287,16 @@ function move_mouse ()
     function () end, 
     function () end
   )
+  -- right click
+  hs.hotkey.bind({'cmd', 'alt'}, 'I', 
+    function () 
+      --print('-- click')
+      local curr_absolute_pos = hs.mouse.absolutePosition()
+      hs.eventtap.rightClick(curr_absolute_pos)
+    end, 
+    function () end, 
+    function () end
+  )
 end 
 ------------------------------------------------------------------------------------
 -- MAIN CODE
@@ -300,7 +310,7 @@ function main()
   all_arrow_key_binding()
   escape_key_en_binding()
   control_key_change_kor_en()
-  move_mouse()
+  move_click_mouse()
   -- End of the Code
   hs.alert.show('Hammerspoon Reloaded Completed!')
   print('-----------------------------------------------------')
