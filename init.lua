@@ -17,17 +17,17 @@ NOT IMPLEMENTED YET
 --]]
 ------------------------------------------------------------------------------------
 -- 2022.03.21 - sng_hn.lee - hammerspoon reload by shortcut
-function refresh_hammerspoon() 
+function refresh_hammerspoon()
   hs.hotkey.bind(
-    {'option', 'cmd'}, 
-    'r', 
-    function() 
-      hs.reload() 
+    {'option', 'cmd'},
+    'r',
+    function()
+      hs.reload()
     end
   )
-end 
+end
 ------------------------------------------------------------------------------------
-local function change_kor_en_input () 
+local function change_kor_en_input ()
   -- 2022.03.22 - sng_hn.lee - 한영전환 함수
   --print("This is ctrl")
   local input_korean = "com.apple.inputmethod.Korean.2SetKorean"
@@ -38,9 +38,9 @@ local function change_kor_en_input ()
     hs.keycodes.currentSourceID(input_korean)
   elseif (input_source == input_korean) then
     hs.keycodes.currentSourceID(input_english)
-  else 
+  else
   end
-end 
+end
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 -- 2022.03.20 - sng_hn.lee - ctrl + cmd + shift + hjkl => block
@@ -51,39 +51,39 @@ function stroke_cmd_shift_arrow(arrow_key)
     local event = require("hs.eventtap").event
     event.newKeyEvent({'shift', 'cmd'}, arrow_key, true):post()
     event.newKeyEvent({'shift', 'cmd'}, arrow_key, false):post()
-  end 
-end 
+  end
+end
 ------------------------------------------------------------------------------------
--- 2022.03.21 - sng_hn.lee - ctrl + cmd + hjkl => go top, head, tail, bottom 
-function stroke_cmd_arrow(arrow_key) 
+-- 2022.03.21 - sng_hn.lee - ctrl + cmd + hjkl => go top, head, tail, bottom
+function stroke_cmd_arrow(arrow_key)
   return function ()
     change_kor_en_input()
     
     local event = require("hs.eventtap").event
     event.newKeyEvent({'ctrl', 'cmd'}, arrow_key, true):post()
     event.newKeyEvent({'ctrl', 'cmd'}, arrow_key, false):post()
-  end 
+  end
 end
 ------------------------------------------------------------------------------------
 -- 2022.03.20 - sng_hn.lee - ctrl + shift + hjkl => block
 -- https://www.hammerspoon.org/docs/hs.eventtap.event.html#newKeyEvent
-function stroke_shift_arrow(arrow_key) 
+function stroke_shift_arrow(arrow_key)
   return function ()
     change_kor_en_input()
 
     local event = require("hs.eventtap").event
     event.newKeyEvent({'shift'}, arrow_key, true):post()
     event.newKeyEvent({'shift'}, arrow_key, false):post()
-  end 
+  end
 end
 ------------------------------------------------------------------------------------
 -- 2022.03.19 - sng_hn.lee - Arrow keys
 -- hs.hotkey.bind(mods, key, [message,] pressedfn, releasedfn, repeatfn)
 -- 누르고 있는 경우를 고려하기 위해서는 repeatfn 이 정의되어야 함.
-function stroke_arrow(arrow_key) 
+function stroke_arrow(arrow_key)
   -- hs.eventtap.keyStroke()의 경우 중간에 timer.usleep()이
   -- 포함되어 있어, 연속 입력이 어려우므로, 다음처럼 처리하였다.
-  return function () 
+  return function ()
     change_kor_en_input()
 
     local event = require("hs.eventtap").event
@@ -96,27 +96,27 @@ function all_arrow_key_binding ()
   }
 
   for k, v in pairs(arrow_table) do
-    hs.hotkey.bind({"ctrl", "cmd", 'shift'}, k, 
-      stroke_cmd_shift_arrow(v), 
-      function () end, 
+    hs.hotkey.bind({"ctrl", "cmd", 'shift'}, k,
+      stroke_cmd_shift_arrow(v),
+      function () end,
       stroke_cmd_shift_arrow(v)
     )
-    hs.hotkey.bind({"ctrl", "cmd"}, k, 
+    hs.hotkey.bind({"ctrl", "cmd"}, k,
       stroke_cmd_arrow(v),
-      function () end, 
+      function () end,
       stroke_cmd_arrow(v)
     )
-    hs.hotkey.bind({"ctrl", "shift"}, k, 
+    hs.hotkey.bind({"ctrl", "shift"}, k,
       stroke_shift_arrow(v),
-      function () end, 
+      function () end,
       stroke_shift_arrow(v)
     )
-    hs.hotkey.bind({"ctrl"}, k, 
-      stroke_arrow(v), 
-      function () end, 
+    hs.hotkey.bind({"ctrl"}, k,
+      stroke_arrow(v),
+      function () end,
       stroke_arrow(v)
     )
-  end 
+  end
 end
 
 ------------------------------------------------------------------------------------
@@ -127,22 +127,22 @@ end
 -- https://leedo1982.github.io/wiki/ESC_CTRL_CAPSLOCK/
 -- https://www.hammerspoon.org/docs/hs.eventtap.event.html#types
 -- hs.eventtap.event.types.keyDown: modifier key가 아닌 다른 일반 key에 down이 발생했을 때
-function escape_key_en_binding() 
+function escape_key_en_binding()
   escape_keyevent = hs.eventtap.new (
     {hs.eventtap.event.types.keyDown},
     function (event)
       local flags = event:getFlags()
       local keycode = hs.keycodes.map[event:getKeyCode()]
 
-      if (keycode == 'escape') then 
+      if (keycode == 'escape') then
         -- print("This is escape")
         local input_korean = "com.apple.inputmethod.Korean.2SetKorean"
         local input_english = "com.apple.keylayout.ABC"
 
         if (hs.keycodes.currentSourceID() ~= input_english) then
           hs.keycodes.currentSourceID(input_english)
-        end 
-      end 
+        end
+      end
     end
   )
   escape_keyevent:start()
@@ -157,7 +157,7 @@ end
 function control_key_change_kor_en()
   control_keyevent = hs.eventtap.new (
     {
-      hs.eventtap.event.types.flagsChanged, 
+      hs.eventtap.event.types.flagsChanged,
       hs.eventtap.event.types.keyDown
     },
     function (event)
@@ -189,7 +189,7 @@ function control_key_change_kor_en()
 end
 ------------------------------------------------------------------------------------
 -- 2022.03.22 - sng_hn.lee - fn + tab => Caps Lock
-function ctrl_space_to_capslock() 
+function ctrl_space_to_capslock()
   --[[
   2022.03.23 - sng_hn.lee
   - HHKB에서는 기본적으로 Fn + tab 에 Caps lock이 mapping되어 있다.
@@ -203,8 +203,8 @@ function ctrl_space_to_capslock()
   - ctrl이 눌리므로, 한영 전환도 발생하지 않도록 수정 필요함.
   --]]
   -- https://www.hammerspoon.org/docs/hs.hid.html
-  -- 
-  hs.hotkey.bind({"ctrl"}, 'space', 
+  --
+  hs.hotkey.bind({"ctrl"}, 'space',
     function ()
       print('ctrl_space')
       -- 현재는 capslock이 없는 상황이기 때문에, 아래에서 오류가 발생함.
@@ -218,7 +218,7 @@ end
 function print_keycode()
   key_code_print = hs.eventtap.new (
     {
-      hs.eventtap.event.types.flagsChanged, 
+      hs.eventtap.event.types.flagsChanged,
       hs.eventtap.event.types.keyDown
     },
     function (event)
@@ -229,7 +229,7 @@ function print_keycode()
   )
   
   key_code_print:start()
-end 
+end
 ------------------------------------------------------------------------------------
 -- 2022.03.23 - sng_hn.lee - mouse 움직이도록 설ㅏ
 function move_click_mouse ()
@@ -267,10 +267,10 @@ function move_click_mouse ()
       to_xy_pos = {x=curr_abs_x + step_x_size, y=curr_abs_y}
       hs.mouse.absolutePosition(to_xy_pos)
     end
-  end 
+  end
   -- 현재 맥북에서는 abs, rel 값이 동일한 것 같음.
   for key, value in pairs({'H', 'J', 'K', 'L'}) do
-    hs.hotkey.bind({'cmd', 'alt'}, value, 
+    hs.hotkey.bind({'cmd', 'alt'}, value,
       function () func_move_mouse_hjkl(value) end,
       function () end,
       function () func_move_mouse_hjkl(value) end
@@ -278,29 +278,29 @@ function move_click_mouse ()
   end
 
   -- left click
-  hs.hotkey.bind({'cmd', 'alt'}, 'U', 
-    function () 
+  hs.hotkey.bind({'cmd', 'alt'}, 'U',
+    function ()
       --print('-- click')
       local curr_absolute_pos = hs.mouse.absolutePosition()
       hs.eventtap.leftClick(curr_absolute_pos)
-    end, 
-    function () end, 
+    end,
+    function () end,
     function () end
   )
   -- right click
-  hs.hotkey.bind({'cmd', 'alt'}, 'I', 
-    function () 
+  hs.hotkey.bind({'cmd', 'alt'}, 'I',
+    function ()
       --print('-- click')
       local curr_absolute_pos = hs.mouse.absolutePosition()
       hs.eventtap.rightClick(curr_absolute_pos)
-    end, 
-    function () end, 
+    end,
+    function () end,
     function () end
   )
-end 
+end
 ------------------------------------------------------------------------------------
 -- MAIN CODE
-function main() 
+function main()
   print('-----------------------------------------------------')
   print('-- Hammerspoon console Start')
   --print_keycode()
@@ -320,7 +320,7 @@ main()
 --[[
 EXAMPLES
 
--- 2022.03.19 - sng_hn.lee - Test. 
+-- 2022.03.19 - sng_hn.lee - Test.
 k = hs.hotkey.modal.new('cmd-shift', 'd')
 function k:entered() hs.alert'Entered mode' end
 function k:exited()  hs.alert'Exited mode'  end
