@@ -12,11 +12,11 @@ function this_module.change_kor_en_input ()
 
   if (hs.keycodes.currentSourceID() == input_english) then
     --hs.alert.show( hs.keycodes.currentSourceID() .. ' => ' .. 'Korean')
-    print('english - korean')
+    --print('english - korean')
     hs.keycodes.currentSourceID(input_korean)
   else
     --hs.alert.show( hs.keycodes.currentSourceID() .. ' => ' .. 'English')
-    print('korean - english')
+    --print('korean - english')
     hs.keycodes.currentSourceID(input_english)
   end
 end
