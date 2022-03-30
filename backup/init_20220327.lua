@@ -1,8 +1,4 @@
 --[[
-LOG
-2022.03.28 - sng_hn.lee - 키 입력시 버퍼링과 한영 전환 시 이상함 등이 있어서 전반적으로 코드를 수정중
-2022.03.30 - sng_hn.lee - Code 들을 다른 파일들로 분리함.
--------------
 IMPLEMENTED
 2022.03.19 - sng_hn.lee - 연속 키 입력시 키 입력 빠르게 되도록 변환
 2022.03.19 - sng_hn.lee - ctrl + hjk 누르고 있으면 계속 눌러지도록 변환 필요: repeatFn
@@ -18,15 +14,8 @@ NOT IMPLEMENTED YET
 - 이건 시스템 환경 설정 > 키보드 > 단축키 에서 설정할 수 있어서 수정함.
 2022.03.21 - sng_hn.lee - Caps Lock key 생성 필요함. 다만, 이건 아래에 작성한 이유로 잘 안되느 것 같음.
 2022.03.25 - sng_hn.lee - ctrl + hjkl 을 누르고 있을 때, 키 입력과 화면 커서 움직임 간에 버퍼링이 있음. 커서가 늦게 움직이거나 버퍼링이 생겨서 나중에 움직임
-2022.03.28 - sng_hn.lee - function module화 필요함
-2022.03.30 - sng_hn.lee - ctrl 눌릴 때마다, kor => en 변경이 계속 일어나도록 하면 버퍼링이 발생함.
 -------------
 --]]
-------------------------------------------------------------------------------------
--- lib list
-kor_en_lang_lib = require('kor_en_lang')
-hjkl_arrow_lib = require('arrow')
-mouse_lib = require('mouse')
 ------------------------------------------------------------------------------------
 -- 2022.03.21 - sng_hn.lee - hammerspoon reload by shortcut
 function refresh_hammerspoon()
@@ -38,6 +27,103 @@ function refresh_hammerspoon()
     end
   )
 end
+------------------------------------------------------------------------------------
+local function change_kor_en_input ()
+  -- 2022.03.22 - sng_hn.lee - 한영전환 함수
+  --print("This is ctrl")
+  local input_korean = "com.apple.inputmethod.Korean.2SetKorean"
+  local input_english = "com.apple.keylayout.ABC"
+  -- local input_source = hs.keycodes.currentSourceID()
+  --hs.alert.show(hs.keycodes.currentSourceID())
+
+  if (hs.keycodes.currentSourceID() == input_english) then
+    --hs.alert.show( hs.keycodes.currentSourceID() .. ' => ' .. 'Korean')
+    hs.keycodes.currentSourceID(input_korean)
+  else
+    --hs.alert.show( hs.keycodes.currentSourceID() .. ' => ' .. 'English')
+    hs.keycodes.currentSourceID(input_english)
+  end
+end
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+-- 2022.03.20 - sng_hn.lee - ctrl + cmd + shift + hjkl => block
+function stroke_cmd_shift_arrow(arrow_key)
+  return function ()
+    change_kor_en_input()
+
+    local event = require("hs.eventtap").event
+    event.newKeyEvent({'shift', 'cmd'}, arrow_key, true):post()
+    event.newKeyEvent({'shift', 'cmd'}, arrow_key, false):post()
+  end
+end
+------------------------------------------------------------------------------------
+-- 2022.03.21 - sng_hn.lee - ctrl + cmd + hjkl => go top, head, tail, bottom
+function stroke_cmd_arrow(arrow_key)
+  return function ()
+    change_kor_en_input()
+    
+    local event = require("hs.eventtap").event
+    event.newKeyEvent({'ctrl', 'cmd'}, arrow_key, true):post()
+    event.newKeyEvent({'ctrl', 'cmd'}, arrow_key, false):post()
+  end
+end
+------------------------------------------------------------------------------------
+-- 2022.03.20 - sng_hn.lee - ctrl + shift + hjkl => block
+-- https://www.hammerspoon.org/docs/hs.eventtap.event.html#newKeyEvent
+function stroke_shift_arrow(arrow_key)
+  return function ()
+    change_kor_en_input()
+
+    local event = require("hs.eventtap").event
+    event.newKeyEvent({'shift'}, arrow_key, true):post()
+    event.newKeyEvent({'shift'}, arrow_key, false):post()
+  end
+end
+------------------------------------------------------------------------------------
+-- 2022.03.19 - sng_hn.lee - Arrow keys
+-- hs.hotkey.bind(mods, key, [message,] pressedfn, releasedfn, repeatfn)
+-- 누르고 있는 경우를 고려하기 위해서는 repeatfn 이 정의되어야 함.
+function stroke_arrow(arrow_key)
+  -- hs.eventtap.keyStroke()의 경우 중간에 timer.usleep()이
+  -- 포함되어 있어, 연속 입력이 어려우므로, 다음처럼 처리하였다.
+  return function ()
+
+    local event = require("hs.eventtap").event
+    event.newKeyEvent({}, arrow_key, true):post()
+    change_kor_en_input()
+    event.newKeyEvent({}, arrow_key, false):post()
+  end end
+function all_arrow_key_binding ()
+  local arrow_table = {
+    H='left', J='down', K='up', L='right'
+  }
+
+  for k, v in pairs(arrow_table) do
+    hs.hotkey.bind({"ctrl", "cmd", 'shift'}, k,
+      stroke_cmd_shift_arrow(v),
+      function () end,
+      stroke_cmd_shift_arrow(v)
+    )
+    hs.hotkey.bind({"ctrl", "cmd"}, k,
+      stroke_cmd_arrow(v),
+      function () end,
+      stroke_cmd_arrow(v)
+    )
+    hs.hotkey.bind({"ctrl", "shift"}, k,
+      stroke_shift_arrow(v),
+      function () end,
+      stroke_shift_arrow(v)
+    )
+    hs.hotkey.bind({"ctrl"}, k,
+      stroke_arrow(v),
+      function () end,
+      stroke_arrow(v)
+    )
+  end
+end
+
+------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 -- 2022.03.20 - sng_hn.lee - 대충 엇비슷하게 만든것 같기는 한데...흠.
 -- 이건 일종의 리스너륾 만든거임. 키가 입력되면 걔가 특정 키인지 확인하고, 해당되는 행위를 수행하도록 함.
@@ -71,7 +157,6 @@ end
 -- ctrl이 눌렸을 때, 이 펑션이 실행되었다가, keyup이 발생하면 나가는 식으로 처리되어야 할 것 같다.
 -- 2022.03.20 - sng_hn.lee - backup
 -- 이거 그냥 ctrl 눌렸을 때 항상 한영 전환 두번씩 되도록 하면 되는거 아닌가?
--- 2022.03.30 - sng_hn.lee - ctrl_release_change_kor_en 를 사용하게 되어, 이 함수는 사용하지 않음
 function control_key_change_kor_en()
   control_keyevent = hs.eventtap.new (
     {
@@ -82,17 +167,27 @@ function control_key_change_kor_en()
       local flags = event:getFlags()
       local keycode = hs.keycodes.map[event:getKeyCode()]
 
+      --control_release_event:start()
+      --print("---------------------------------------")
+      -- print('containExactly ctrl: ', flags:containExactly({'ctrl'}))
+      -- print('keycode: ', keycode)
       if (flags:containExactly({'ctrl'}) == true) then
+        -- ctrl pressed : true
+        -- ctrl pressed > i pressed true
+        -- shift pressed > ctrl pressed > shift released: true
+        --print("only ctrl pressed")
+        --print('flags.ctrl: ', flags.ctrl)
 
         if (flags.ctrl == true) then
-          print("This is ctrl")
-          kor_en_lang_lib.change_kor_en_input()
+          --print("This is ctrl")
+          change_kor_en_input()
         end
       else
         --print('not only ctrl other pressed or released')
       end
     end
   )
+  
   control_keyevent:start()
 end
 ------------------------------------------------------------------------------------
@@ -122,7 +217,7 @@ function ctrl_space_to_capslock()
   )
 end
 ------------------------------------------------------------------------------------
--- 2022.03.23 - sng_hn.lee - key 조합을 알기 위해 사용
+-- 2022.03.23 - sng_hn.lee
 function print_keycode()
   key_code_print = hs.eventtap.new (
     {
@@ -132,58 +227,79 @@ function print_keycode()
     function (event)
       local flags = event:getFlags()
       local keycode = hs.keycodes.map[event:getKeyCode()]
-      --print('== print_keycode ========================')
-      print('keycode: ', keycode)
-      print('flags: ', flags, ' = ', flags.ctrl, ' = ', flags:containExactly({'ctrl'}))
-      if (keycode == 'ctrl' and flags.ctrl == nil and flags:containExactly({'ctrl'}) == false) then
-        print('=== key released')
-      end
-      --print('==========================================')
+      print(keycode)
     end
   )
   
   key_code_print:start()
 end
 ------------------------------------------------------------------------------------
--- 2022.03.30 - sng_hn.lee - ctrl release change kor en
--- 완성했다 씨바!!!!
--- ctrl이 단독으로 눌리는 경우에는 한영 변환을 진행하고,
--- ctrl이 눌린 상태에서, hjkl이 눌린 적이 있으면, 이전 입력 소스로 변경함
-input_before_ctrl_pressed = nil
-hjkl_press_count_during_ctrl_pressed = 0
+-- 2022.03.23 - sng_hn.lee - mouse 움직이도록 설ㅏ
+function move_click_mouse ()
+  --https://www.hammerspoon.org/docs/hs.mouse.html
 
-function only_ctrl_change_kor_en()
-  local_function = hs.eventtap.new (
-    {
-      hs.eventtap.event.types.flagsChanged,
-      hs.eventtap.event.types.keyDown
-    },
-    function (event)
-      input_before_ctrl_pressed = hs.keycodes.currentSourceID()
+  local function func_move_mouse_hjkl (key)
+    local step_x_size = 30.0
+    local step_y_size = 15.0
 
-      local flags = event:getFlags()
-      local keycode = hs.keycodes.map[event:getKeyCode()]
-      --print('hjkl_press_count: ', hjkl_press_count)
-      --print('== print_keycode ========================')
-      if (keycode == 'ctrl' and flags.ctrl == true and flags:containExactly({'ctrl'}) == true) then
-        --print('== ctrl key pressed')
-        hjkl_press_count_during_ctrl_pressed = 0
-      elseif (keycode == 'h' or keycode == 'j' or keycode == 'k' or keycode == 'l') then
-        hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
-      elseif (keycode == 'ctrl' and flags.ctrl == nil and flags:containExactly({'ctrl'}) == false) then
-        --print('== ctrl key released')
-        if (hjkl_press_count_during_ctrl_pressed== 0) then
-          -- ctrl press 이후 hjkl이 눌린 적 없으므로 변환
-          kor_en_lang_lib.change_kor_en_input()
-        else
-          -- ctrl 이후 hjkl이 눌렸으므로 이전 input으로 변경함
-          hs.keycodes.currentSourceID(input_before_ctrl_pressed)
-        end
-      end
-      --print('==========================================')
+    local curr_relative_pos = hs.mouse.getRelativePosition()
+    local curr_absolute_pos = hs.mouse.absolutePosition()
+    local curr_abs_x = curr_absolute_pos['x']
+    local curr_abs_y = curr_absolute_pos['y']
+
+    --print('current absolute position: ', curr_abs_x, curr_abs_y)
+
+    if (key == 'H') then
+      --print('go mouse left')
+
+      to_xy_pos = {x=curr_abs_x - step_x_size, y=curr_abs_y}
+      hs.mouse.absolutePosition(to_xy_pos)
+    elseif (key == 'J') then
+      --print('go mouse down')
+
+      to_xy_pos = {x=curr_abs_x, y=curr_abs_y + step_y_size}
+      hs.mouse.absolutePosition(to_xy_pos)
+    elseif (key == 'K') then
+      --print('go mouse up')
+
+      to_xy_pos = {x=curr_abs_x, y=curr_abs_y - step_y_size}
+      hs.mouse.absolutePosition(to_xy_pos)
+    elseif (key == 'L') then
+      --print('go mouse right')
+
+      to_xy_pos = {x=curr_abs_x + step_x_size, y=curr_abs_y}
+      hs.mouse.absolutePosition(to_xy_pos)
     end
+  end
+  -- 현재 맥북에서는 abs, rel 값이 동일한 것 같음.
+  for key, value in pairs({'H', 'J', 'K', 'L'}) do
+    hs.hotkey.bind({'cmd', 'alt'}, value,
+      function () func_move_mouse_hjkl(value) end,
+      function () end,
+      function () func_move_mouse_hjkl(value) end
+    )
+  end
+
+  -- left click
+  hs.hotkey.bind({'cmd', 'alt'}, 'U',
+    function ()
+      --print('-- click')
+      local curr_absolute_pos = hs.mouse.absolutePosition()
+      hs.eventtap.leftClick(curr_absolute_pos)
+    end,
+    function () end,
+    function () end
   )
-  local_function:start()
+  -- right click
+  hs.hotkey.bind({'cmd', 'alt'}, 'I',
+    function ()
+      --print('-- click')
+      local curr_absolute_pos = hs.mouse.absolutePosition()
+      hs.eventtap.rightClick(curr_absolute_pos)
+    end,
+    function () end,
+    function () end
+  )
 end
 ------------------------------------------------------------------------------------
 -- MAIN CODE
@@ -194,16 +310,10 @@ function main()
   ctrl_space_to_capslock()
 
   refresh_hammerspoon()
-  --all_arrow_key_binding()
-
-  hjkl_arrow_lib.stroke_arrow()
-
+  all_arrow_key_binding()
   escape_key_en_binding()
-  --control_key_change_kor_en()
-  only_ctrl_change_kor_en()
-
-  --mouse = require('mouse')
-  mouse_lib.move_click_mouse()
+  control_key_change_kor_en()
+  move_click_mouse()
   -- End of the Code
   hs.alert.show('Hammerspoon Reloaded Completed!')
   print('-----------------------------------------------------')
