@@ -65,37 +65,6 @@ function escape_key_en_binding()
   escape_keyevent:start()
 end
 ------------------------------------------------------------------------------------
--- 2022.03.20 - sng_hn.lee - test
--- hs.eventtap.event.types.flagsChanged: modifier key event 가 발생했을 때.
--- ctrl hjkl 에서도 한영변환이 발생하는데, 한영변환 발생하지 않도록 하려면?
--- ctrl이 눌렸을 때, 이 펑션이 실행되었다가, keyup이 발생하면 나가는 식으로 처리되어야 할 것 같다.
--- 2022.03.20 - sng_hn.lee - backup
--- 이거 그냥 ctrl 눌렸을 때 항상 한영 전환 두번씩 되도록 하면 되는거 아닌가?
--- 2022.03.30 - sng_hn.lee - ctrl_release_change_kor_en 를 사용하게 되어, 이 함수는 사용하지 않음
-function control_key_change_kor_en()
-  control_keyevent = hs.eventtap.new (
-    {
-      hs.eventtap.event.types.flagsChanged,
-      hs.eventtap.event.types.keyDown
-    },
-    function (event)
-      local flags = event:getFlags()
-      local keycode = hs.keycodes.map[event:getKeyCode()]
-
-      if (flags:containExactly({'ctrl'}) == true) then
-
-        if (flags.ctrl == true) then
-          print("This is ctrl")
-          kor_en_lang_lib.change_kor_en_input()
-        end
-      else
-        --print('not only ctrl other pressed or released')
-      end
-    end
-  )
-  control_keyevent:start()
-end
-------------------------------------------------------------------------------------
 -- 2022.03.22 - sng_hn.lee - fn + tab => Caps Lock
 function ctrl_space_to_capslock()
   --[[
@@ -197,15 +166,12 @@ function main()
   ctrl_space_to_capslock()
 
   refresh_hammerspoon()
-  --all_arrow_key_binding()
+  escape_key_en_binding()
+  only_ctrl_change_kor_en()
 
   hjkl_arrow_lib.stroke_arrow()
 
-  escape_key_en_binding()
-  --control_key_change_kor_en()
-  only_ctrl_change_kor_en()
 
-  --mouse = require('mouse')
   mouse_lib.move_click_mouse()
   -- End of the Code
   hs.alert.show('Hammerspoon Reloaded Completed!')
