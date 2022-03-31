@@ -11,6 +11,7 @@ function this_module.stroke_arrow()
 
   kor_en_lang = require('kor_en_lang')
   for k, v in pairs(arrow_table) do
+    -- 2022.03.31 - sng_hn.lee - ctrl + hjkl => arrow
     hs.hotkey.bind({"ctrl"}, k,
       function ()
         local event = require("hs.eventtap").event
@@ -26,6 +27,49 @@ function this_module.stroke_arrow()
         event.newKeyEvent({}, v, false):post()
       end
     )
+    -- 2022.03.20 - sng_hn.lee - ctrl + shift + hjkl => block
+    hs.hotkey.bind({"ctrl", 'shift'}, k,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'shift'}, v, true):post()
+        event.newKeyEvent({'shift'}, v, false):post()
+      end,
+      function () end,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'shift'}, v, true):post()
+        event.newKeyEvent({'shift'}, v, false):post()
+      end
+    )
+    -- 2022.03.31 - sng_hn.lee - ctrl + cmd + hjkl => go top, head, tail, bottom
+    hs.hotkey.bind({"ctrl", 'cmd'}, k,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'cmd'}, v, true):post()
+        event.newKeyEvent({'cmd'}, v, false):post()
+      end,
+      function () end,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'cmd'}, v, true):post()
+        event.newKeyEvent({'cmd'}, v, false):post()
+      end
+    )
+    -- 2022.03.31 - sng_hn.lee - ctrl + cmd + shift + hjkl => block
+    hs.hotkey.bind({"ctrl", 'cmd', 'shift'}, k,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'shift', 'cmd'}, v, true):post()
+        event.newKeyEvent({'shift', 'cmd'}, v, false):post()
+      end,
+      function () end,
+      function ()
+        local event = require("hs.eventtap").event
+        event.newKeyEvent({'shift', 'cmd'}, v, true):post()
+        event.newKeyEvent({'shift', 'cmd'}, v, false):post()
+      end
+    )
+    
   end
 end
 

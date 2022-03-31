@@ -149,6 +149,8 @@ end
 -- 완성했다 씨바!!!!
 -- ctrl이 단독으로 눌리는 경우에는 한영 변환을 진행하고,
 -- ctrl이 눌린 상태에서, hjkl이 눌린 적이 있으면, 이전 입력 소스로 변경함
+-- arrow(Fn + [;/')이 입력되었을 때도 변환되지 않도록 처리함
+-- 제외되어야 하는 key_code 들을 set로 빼서, contain 등으로 처리하는 것이 필요함
 input_before_ctrl_pressed = nil
 hjkl_press_count_during_ctrl_pressed = 0
 
@@ -170,6 +172,8 @@ function only_ctrl_change_kor_en()
         hjkl_press_count_during_ctrl_pressed = 0
       elseif (keycode == 'h' or keycode == 'j' or keycode == 'k' or keycode == 'l') then
         hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
+      elseif (keycode == 'left' or keycode == 'right' or keycode == 'up' or keycode == 'down') then
+        hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
       elseif (keycode == 'ctrl' and flags.ctrl == nil and flags:containExactly({'ctrl'}) == false) then
         --print('== ctrl key released')
         if (hjkl_press_count_during_ctrl_pressed== 0) then
@@ -190,7 +194,6 @@ end
 function main()
   print('-----------------------------------------------------')
   print('-- Hammerspoon console Start')
-  --print_keycode()
   ctrl_space_to_capslock()
 
   refresh_hammerspoon()
