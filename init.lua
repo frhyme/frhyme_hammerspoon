@@ -27,6 +27,7 @@ NOT IMPLEMENTED YET
 kor_en_lang_lib = require('kor_en_lang')
 hjkl_arrow_lib = require('arrow')
 mouse_lib = require('mouse')
+cmd_q_lib = require('cmd_q')
 ------------------------------------------------------------------------------------
 -- 2022.03.21 - sng_hn.lee - hammerspoon reload by shortcut
 function refresh_hammerspoon()
@@ -143,6 +144,8 @@ function only_ctrl_change_kor_en()
         hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
       elseif (keycode == 'left' or keycode == 'right' or keycode == 'up' or keycode == 'down') then
         hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
+      elseif (keycode == 'u' or keycode == 'd' or keycode == 'r') then
+        hjkl_press_count_during_ctrl_pressed = hjkl_press_count_during_ctrl_pressed  + 1
       elseif (keycode == 'ctrl' and flags.ctrl == nil and flags:containExactly({'ctrl'}) == false) then
         --print('== ctrl key released')
         if (hjkl_press_count_during_ctrl_pressed== 0) then
@@ -170,6 +173,8 @@ function main()
   only_ctrl_change_kor_en()
 
   hjkl_arrow_lib.stroke_arrow()
+
+  cmd_q_lib.cmd_q_twice()
 
 
   mouse_lib.move_click_mouse()
